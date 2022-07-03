@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use App\Exports\StudentsExport;
+
 class SearchStudentsTable extends DataTableComponent
 {
     protected $model = ModelsSearchStudentsTable::class;
@@ -100,7 +101,7 @@ class SearchStudentsTable extends DataTableComponent
                 ->format(fn ($value) => number_format(is_numeric($value) ? $value : 0, 0, '', '')),
 
             Column::make('Adm. Class', 'admitted_class'),
-            
+
             Column::make('Adm. Date', 'admission_date')
                 ->format(fn ($value) => Carbon::createFromDate($value)->format('d-m-Y'))
                 ->sortable(),
@@ -121,7 +122,7 @@ class SearchStudentsTable extends DataTableComponent
                 ->searchable(),,
             */
 
-            
+
 
             Column::make('Name of Mother', 'mother_name')
                 ->searchable(),
@@ -174,18 +175,19 @@ class SearchStudentsTable extends DataTableComponent
         return Excel::download(new StudentsExport($ids, $sorts), 'students.xlsx');
     }
 
+
+    /*
+[
+  "class" => array:1 [▶
+    0 => "12"
+  ]
+  "status" => "Active"
+]
+*/
+
     public function filters(): array
     {
-        // $busstops = $this->model::query()
-        //     ->distinct()
-        //     ->select('bus_stop')
-        //     ->orderBy('bus_stop')
-        //     ->get()
-        //     ->keyBy('bus_stop')
-        //     ->map(fn ($bus_stop) => Str::title($bus_stop->bus_stop))
-        //     ->toArray();
 
-        // $all_busstops = Arr::prepend($busstops, 'All', '');
 
         $genders = $this->model::query()
             ->distinct()
@@ -199,18 +201,34 @@ class SearchStudentsTable extends DataTableComponent
         $all_genders = Arr::prepend($genders, 'All', '');
 
 
-        $batches = $this->model::query()
-            ->distinct()
-            ->select('full_batch')
-            ->orderBy('class_id')
-            ->orderBy('full_batch', 'desc')
-            ->get()
-            ->keyBy('full_batch')
-            ->map(fn ($batch) => $batch->full_batch)
-            ->toArray();
-
+        $class = [];
+        if (Arr::has($this->getAppliedFilters(), 'class')) {
+            ['class' => $class] = $this->getAppliedFilters();
+            // dump($class);
+        }
+        if (empty($class)) {
+            $batches = $this->model::query()
+                ->distinct()
+                ->select('full_batch')
+                ->orderBy('class_id')
+                ->orderBy('full_batch', 'desc')
+                ->get()
+                ->keyBy('full_batch')
+                ->map(fn ($batch) => $batch->full_batch)
+                ->toArray();
+        } else {
+            $batches = $this->model::query()
+                ->distinct()
+                ->select('full_batch')
+                ->whereIn('class_id', $class)
+                ->orderBy('class_id')
+                ->orderBy('full_batch', 'desc')
+                ->get()
+                ->keyBy('full_batch')
+                ->map(fn ($batch) => $batch->full_batch)
+                ->toArray();
+        }
         $all_batches = Arr::prepend($batches, 'All', '');
-
 
         $status = $this->model::query()
             ->distinct()
