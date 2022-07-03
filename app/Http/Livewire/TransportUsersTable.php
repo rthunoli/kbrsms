@@ -14,8 +14,6 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use Illuminate\Support\Str;
 
-use function PHPUnit\Framework\isNull;
-
 class TransportUsersTable extends DataTableComponent
 {
     protected $model = ModelsTransportUsersTable::class;
