@@ -48,15 +48,15 @@ class FeePaidExport implements
         foreach ($this->sorts as $sort_col => $sort_dir) {}
 
         $this->tot_fee = FeePaidTable::query()
-            ->whereIn('receipt_id', $this->ids)
+            ->whereIn('id', $this->ids)
             ->selectraw('sum(amount) as tot_fee')->get()[0]->tot_fee;
 
         $this->tot_discount = FeePaidTable::query()
-            ->whereIn('receipt_id', $this->ids)
-            ->selectraw('sum(discount) as tot_discount')->get()[0]->tot_discount;
+            ->whereIn('id', $this->ids)
+            ->selectraw('sum(tot_discount) as tot_discount')->get()[0]->tot_discount;
 
         $query = FeePaidTable::query()
-            ->whereIn('receipt_id', $this->ids)
+            ->whereIn('id', $this->ids)
             ->select([
                 'receipt_date',
                 'admission_no',
@@ -64,7 +64,7 @@ class FeePaidExport implements
                 'full_batch',
                 'method',
                 'amount',
-                'discount',
+                'tot_discount',
                 'fee_type',
                 'receipt_id'
             ])
@@ -97,7 +97,7 @@ class FeePaidExport implements
             $fee_paid->full_batch,
             $fee_paid->method,
             $fee_paid->amount,
-            $fee_paid->discount,
+            $fee_paid->tot_discount,
             $fee_paid->fee_type,
             $fee_paid->receipt_id,
         ];

@@ -22,7 +22,7 @@ class FeePaidTable extends DataTableComponent
     public function configure(): void
     {
 
-        $this->setPrimaryKey('receipt_id')
+        $this->setPrimaryKey('id')
             ->setSecondaryHeaderTrAttributes(function ($rows) {
                 return [
                     // 'default' => true,
@@ -31,6 +31,7 @@ class FeePaidTable extends DataTableComponent
             })
             // ->setDebugEnabled()
             ->setDefaultSort('receipt_date', 'desc')
+            ->setAdditionalSelects('id')
             ->setPerPageAccepted([10, 25, 50, -1])
             // ->setFooterDisabled()
             // ->setUseHeaderAsFooterEnabled()
@@ -73,10 +74,10 @@ class FeePaidTable extends DataTableComponent
                 })
                 ->format(fn ($value) => number_format($value, 2, '.', '')),
 
-            Column::make('Discount', 'discount')
+            Column::make('Discount', 'tot_discount')
                 ->sortable()
                 ->secondaryHeader(function () {
-                    return $this->getTotal('discount');
+                    return $this->getTotal('tot_discount');
                 })
                 ->format(fn ($value) => number_format($value, 2, '.', '')),
 
@@ -179,12 +180,14 @@ class FeePaidTable extends DataTableComponent
                 ->setFilterPillTitle('FeeType')
                 ->setFilterPillValues([
                     'Academic' => 'Academic',
-                    'Admission' => 'Admission'
+                    'Admission' => 'Admission',
+                    'Transport' => 'Transport'
                 ])
                 ->options([
                     '' => 'All',
                     'Academic' => 'Academic',
-                    'Admission' => 'Admission'
+                    'Admission' => 'Admission',
+                    'Transport' => 'Transport'
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('fee_type', $value);

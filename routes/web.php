@@ -71,8 +71,8 @@ Route::get('/fee_paid_headwise', [ReportController::class, 'fee_paid_headwise'])
 
 Route::get('/printer-test', [PrintController::class, 'index'])->name('printer-test');
 
-Route::get('/query-test', [QueryController::class, 'index'])
-    ->middleware(['auth', 'dbok'])->name('query-test');
+// Route::get('/query-test', [QueryController::class, 'index'])
+//     ->middleware(['auth', 'dbok'])->name('query-test');
 
 
 require __DIR__ . '/auth.php';
