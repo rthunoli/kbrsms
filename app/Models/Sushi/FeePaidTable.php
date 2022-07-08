@@ -172,7 +172,7 @@ class FeePaidTable extends Model
             ]);
 
         $transport_fee = DB::query()->select(
-            'a.transaction_id as receipt_id',
+            DB::raw("concat('T',lpad(a.id,7,'0')) AS receipt_id"),
             'a.date as receipt_date',
             'd.admission_no',
             'd.full_name',
@@ -205,7 +205,7 @@ class FeePaidTable extends Model
             ->wheredate('a.date', '>=', $this->start_date)
             ->wheredate('a.date', '<=', $this->end_date)
             ->groupby([
-                'a.transaction_id', 'a.date', 'd.admission_no', 'd.full_name',
+                'a.id', 'a.date', 'd.admission_no', 'd.full_name',
                 'f.id', 'f.class_name', 'e.id', 'e.batch_name', 'g.name','a.method'
             ]);
 
