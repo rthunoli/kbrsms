@@ -30,7 +30,7 @@ WithEvents
     use Exportable, DateRange;
     public $ids;
     public $sorts = [];
-    // public $tot_fee;
+    public $tot_fee;
     // public $tot_discount;
 
     public function __construct($ids,$sorts) {
@@ -45,9 +45,9 @@ WithEvents
 
         foreach($this->sorts as $sort_col=>$sort_dir){}
 
-        // $this->tot_fee = TransportUnpaidTable::query()
-        //     ->whereIn('id', $this->ids)
-        //     ->selectraw('sum(amount) as tot_fee')->get()[0]->tot_fee;
+        $this->tot_fee = TransportUnpaidTable::query()
+            ->whereIn('id', $this->ids)
+            ->selectraw('sum(amount) as tot_fee')->get()[0]->tot_fee;
 
         // $this->tot_discount = TransportUnpaidTable::query()
         //     ->whereIn('id', $this->ids)
@@ -60,6 +60,7 @@ WithEvents
                 'full_name',
                 'full_batch',
                 'startdate',
+                'amount',
                 'month',
             ])
             ->orderby($sort_col,$sort_dir);
@@ -76,6 +77,7 @@ WithEvents
             'Name',
             'Batch',
             'Start Date',
+            'Amount',
             'Month',
         ];
     }
@@ -87,6 +89,7 @@ WithEvents
             $transport_unpaid->full_name,
             $transport_unpaid->full_batch,
             Carbon::createFromDate($transport_unpaid->startdate)->format('d-m-Y'),
+            $transport_unpaid->amount,
             $transport_unpaid->month,
         ];
     }
@@ -95,6 +98,7 @@ WithEvents
     {
         return [
             'D' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+            'E' => NumberFormat::FORMAT_NUMBER_00,
         ];
     }
 
@@ -102,17 +106,15 @@ WithEvents
     {   
         $this->setDateRange('transport_unpaid');
         $sheet->setCellValue("A1",'Transport Unpaid [' . $this->start_date_dmy . ' - ' . $this->end_date_dmy . ']');
-        $sheet->mergeCells('A1:E1');
-        $sheet->getStyle('A1:E2')->getFont()->setBold(true);
+        $sheet->mergeCells('A1:F1');
+        $sheet->getStyle('A1:F2')->getFont()->setBold(true);
         
-        // $afterLastRow=$sheet->getHighestDataRow()+1;
-        // $sheet->setCellValue('A'.$afterLastRow,'Total');
-        // $sheet->setCellValue('D'.$afterLastRow,$this->tot_fee);
-        // $sheet->setCellValue('E'.$afterLastRow,$this->tot_discount);
-        // $range='A'. $afterLastRow. ':E' . $afterLastRow;
-        // $sheet->getStyle($range)->getFont()->setBold(true);
-        // $sheet->getStyle('D'.$afterLastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
-        // $sheet->getStyle('E'.$afterLastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
+        $afterLastRow=$sheet->getHighestDataRow()+1;
+        $sheet->setCellValue('A'.$afterLastRow,'Total');
+        $sheet->setCellValue('E'.$afterLastRow,$this->tot_fee);
+        $range='A'. $afterLastRow. ':E' . $afterLastRow;
+        $sheet->getStyle($range)->getFont()->setBold(true);
+        $sheet->getStyle('E'.$afterLastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
     }
 
     public function startCell():string

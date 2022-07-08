@@ -66,6 +66,7 @@ class TransportPaidTable extends DataTableComponent
                 ->sortable(),
 
             Column::make('Amount', 'amount')
+                ->searchable()
                 ->sortable()
                 ->secondaryHeader(function () {
                     return $this->getTotal('amount');

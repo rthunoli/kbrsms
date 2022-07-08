@@ -102,6 +102,7 @@ class TransportUsersExport implements
     public function columnFormats(): array
     {
         return [
+            'G' => NumberFormat::FORMAT_NUMBER_00,
             'H' => NumberFormat::FORMAT_DATE_DDMMYYYY,
             'I' => NumberFormat::FORMAT_DATE_DDMMYYYY,
         ];

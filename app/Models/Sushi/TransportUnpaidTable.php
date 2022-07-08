@@ -36,8 +36,7 @@ class TransportUnpaidTable extends Model
             $union = trim($union);
             session(['transport_unpaid.union' => $union]);
         }
-        /*works while clicking page links*/ 
-        else {
+        /*works while clicking page links*/ else {
             $union = session('transport_unpaid.union');
         }
 
@@ -49,13 +48,16 @@ class TransportUnpaidTable extends Model
                 DB::raw("concat(f.name,' ',c.batch_name) as full_batch"),
                 'd.id as class_id',
                 'd.class_name',
-                'm.month'
+                'm.month',
+                'g.amount'
             )
             ->fromsub(function ($query) {
                 $query->select(
                     "student_id",
                     "status",
                     "start_date",
+                    "year_id",
+                    "point_id",
                     DB::raw("date(start_date - day(start_date) +1) as strt_date")
                 )
                     ->from("transport_student_point");
@@ -71,6 +73,10 @@ class TransportUnpaidTable extends Model
                     ->on("m.month", "e.month");
             })
             ->join("academic_year as f", "c.year_id", "f.id")
+            ->join("transport_fee_head as g", function ($join) {
+                $join->on("a.year_id", "g.year_id")
+                    ->on("a.point_id", "g.point_id");
+            })
             ->where("a.status", 1)
             ->wherenull("e.month")
             ->wherenotnull("m.month");
@@ -82,6 +88,7 @@ class TransportUnpaidTable extends Model
             'full_batch',
             'class_id',
             'class_name',
+            DB::raw("sum(amount) as amount"),
             DB::raw("group_concat(monthname(month) order by month separator ', ') as month")
         )
             ->from($query, 'x')

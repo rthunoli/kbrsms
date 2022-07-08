@@ -12,10 +12,12 @@ use Illuminate\Support\Arr;
 use Maatwebsite\Excel\Facades\Excel;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
+use App\Traits\CalcTotal;
 
 class TransportUnpaidTable extends DataTableComponent
 {
     protected $model = ModelsTransportUnpaidTable::class;
+    use CalcTotal;
 
     public function configure(): void
     {
@@ -57,6 +59,14 @@ class TransportUnpaidTable extends DataTableComponent
                 ->searchable()
                 ->sortable(),
 
+            Column::make('Amount', 'amount')
+                ->searchable()
+                ->sortable()
+                ->secondaryHeader(function () {
+                    return $this->getTotal('amount');
+                })
+                ->format(fn ($value) => number_format($value, 2, '.', '')),
+
             Column::make('Month', 'month')
                 ->searchable()
                 ->sortable()
@@ -97,9 +107,9 @@ class TransportUnpaidTable extends DataTableComponent
             ->toArray();
 
         $all_batches = Arr::prepend($batches, 'All', '');
-        
+
         return [
-            
+
             MultiSelectFilter::make('Class')
                 ->options(
                     $this->model::query()

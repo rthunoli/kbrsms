@@ -101,6 +101,8 @@ WithEvents
     {
         return [
             'D' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+            'F' => NumberFormat::FORMAT_NUMBER_00,
+            'G' => NumberFormat::FORMAT_NUMBER_00,
         ];
     }
 
