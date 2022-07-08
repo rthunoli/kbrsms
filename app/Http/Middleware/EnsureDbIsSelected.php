@@ -19,7 +19,7 @@ class EnsureDbIsSelected
 
         if(! session()->has('db')){
             // return redirect('/')->with('dbnotok', 'Please select a database (EMS/HSS)');
-            return redirect()->route('home')->with('dbnotok', 'Please select a database (EMS/HSS)');
+            return redirect()->route('home')->with('error', 'Please select a database (EMS/HSS)');
         }
         return $next($request);
     }

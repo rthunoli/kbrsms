@@ -53,6 +53,16 @@
 
                     <x-slot name="content">
                         <!-- Authentication -->
+                        <form method="GET" action="{{ route('password.change') }}">
+                            @csrf
+
+                            <x-dropdown-link :href="route('password.change')"
+                                    onclick="event.preventDefault();
+                                                this.closest('form').submit();">
+                                {{ __('Change Password') }}
+                            </x-dropdown-link>
+                        </form>
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
 
@@ -93,6 +103,17 @@
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 
+            <div class="mt-3 space-y-1">
+                <form method="GET" action="{{ route('password.change') }}">
+                    @csrf
+
+                    <x-dropdown-link :href="route('password.change')"
+                            onclick="event.preventDefault();
+                                        this.closest('form').submit();">
+                        {{ __('Change Password') }}
+                    </x-dropdown-link>
+                </form>
+            </div>
             <div class="mt-3 space-y-1">
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
