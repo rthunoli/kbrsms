@@ -19,11 +19,6 @@
                         Students
                     </div>
                     <div class="border sm:rounded-lg overflow-x-auto">
-                        {{-- <livewire:search-students 
-                            name="search" 
-                            hideable="select"
-                            exportable
-                        />    --}}
                         <livewire:search-students-table />
                     </div>
                 </div>

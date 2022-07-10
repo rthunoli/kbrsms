@@ -17,6 +17,30 @@ class SearchStudentsTable extends DataTableComponent
 {
     protected $model = ModelsSearchStudentsTable::class;
 
+
+    private function getFirstLangCount()
+    {
+        $ids = $this->getSelected();
+        if ($ids == []) {
+            $this->setAllSelected();
+            $ids = $this->getSelected();
+            // dump($ids);
+            $this->clearSelected();
+        }
+
+        $lang_count =  $this->model::query()
+            ->whereIn($this->getPrimaryKey(), $ids)
+            ->select('second_language')
+            ->selectraw('count(*) as count')
+            ->groupby('second_language')
+            ->get()
+            ->keyby('second_language')
+            ->map(fn ($row) => $row->count)
+            ->toarray();
+
+        return $lang_count;
+    }
+
     public function configure(): void
     {
         $this->setPrimaryKey('id')
@@ -64,13 +88,13 @@ class SearchStudentsTable extends DataTableComponent
                 ->searchable()
                 ->sortable(),
 
-            Column::make('Gender', 'gender')
-                ->sortable()
-                ->secondaryHeaderFilter('gender'),
-
             Column::make('Status', 'status')
                 ->sortable()
                 ->secondaryHeaderFilter('status'),
+
+            Column::make('Gender', 'gender')
+                ->sortable()
+                ->secondaryHeaderFilter('gender'),
 
             Column::make('Batch Name', 'full_batch')
                 ->sortable()
@@ -82,7 +106,10 @@ class SearchStudentsTable extends DataTableComponent
 
             Column::make('First Lang.', 'second_language')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->secondaryHeader(function() {
+                    return view('tables.cells.first-lang-list')->with('first_lang_list', $this->getFirstLangCount());
+                }),
 
             Column::make('Digital', 'digital')
                 ->searchable()
@@ -187,8 +214,6 @@ class SearchStudentsTable extends DataTableComponent
 
     public function filters(): array
     {
-
-
         $genders = $this->model::query()
             ->distinct()
             ->select('gender')
@@ -200,12 +225,12 @@ class SearchStudentsTable extends DataTableComponent
 
         $all_genders = Arr::prepend($genders, 'All', '');
 
-
-        $class = [];
         if (Arr::has($this->getAppliedFilters(), 'class')) {
             ['class' => $class] = $this->getAppliedFilters();
-            // dump($class);
+            if (is_string($class))
+                $class = [$class];
         }
+
         if (empty($class)) {
             $batches = $this->model::query()
                 ->distinct()
@@ -241,9 +266,7 @@ class SearchStudentsTable extends DataTableComponent
 
         $all_status = Arr::prepend($status, 'All', '');
 
-
         return [
-
             MultiSelectFilter::make('Class')
                 ->options(
                     $this->model::query()

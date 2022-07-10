@@ -19,7 +19,6 @@ trait CalcTotal
             ->selectraw($sum_expr)->get()[0]->sum;
 
         return number_format($sum_total, 2, '.', ',');
-
     }
 
 }
