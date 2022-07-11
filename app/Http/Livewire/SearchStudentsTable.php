@@ -12,13 +12,13 @@ use Maatwebsite\Excel\Facades\Excel;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use App\Exports\StudentsExport;
+use Illuminate\Support\Str;
 
 class SearchStudentsTable extends DataTableComponent
 {
     protected $model = ModelsSearchStudentsTable::class;
 
-
-    private function getFirstLangCount()
+    private function getFirstLangCount(): array
     {
         $ids = $this->getSelected();
         if ($ids == []) {
@@ -51,12 +51,19 @@ class SearchStudentsTable extends DataTableComponent
                 ];
             })
             // ->setDebugEnabled()
-            ->setAdditionalSelects(['id'])
+            ->setAdditionalSelects(['id', 'admission_no'])
             ->setDefaultSort('admission_no')
             ->setPerPageAccepted([5, 10, 25, 50, -1])
             // ->setFooterDisabled()
             // ->setUseHeaderAsFooterEnabled()
-        ;
+            ->setTableRowUrl(function ($row) {
+                $id = $row->id;
+                $subdomain = Str::lower(session('db'));
+                return "https://$subdomain.kadamburschool.net/students/admin/view/${id}";
+            })
+            ->setTableRowUrlTarget(function ($row) {
+                return '_blank';
+            });
     }
 
     public function columns(): array
@@ -90,58 +97,72 @@ class SearchStudentsTable extends DataTableComponent
 
             Column::make('Status', 'status')
                 ->sortable()
-                ->secondaryHeaderFilter('status'),
+                ->secondaryHeaderFilter('status')
+                ->unclickable(),
 
             Column::make('Gender', 'gender')
                 ->sortable()
-                ->secondaryHeaderFilter('gender'),
+                ->secondaryHeaderFilter('gender')
+                ->unclickable(),
 
             Column::make('Batch Name', 'full_batch')
                 ->sortable()
-                ->secondaryHeaderFilter('full_batch'),
+                ->secondaryHeaderFilter('full_batch')
+                ->unclickable(),
 
             Column::make('Medium', 'medium')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->unclickable(),
 
             Column::make('First Lang.', 'second_language')
                 ->searchable()
                 ->sortable()
-                ->secondaryHeader(function() {
+                ->secondaryHeader(function () {
                     return view('tables.cells.first-lang-list')->with('first_lang_list', $this->getFirstLangCount());
-                }),
+                })
+                ->unclickable(),
 
             Column::make('Digital', 'digital')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->unclickable(),
 
             Column::make('Contact Phone', 'phone_no')
                 ->searchable()
-                ->format(fn ($value) => number_format(is_numeric($value) ? $value : 0, 0, '', '')),
+                ->format(fn ($value) => number_format(is_numeric($value) ? $value : 0, 0, '', ''))
+                ->unclickable(),
 
             Column::make('Home Phone', 'phone_home')
                 ->searchable()
-                ->format(fn ($value) => number_format(is_numeric($value) ? $value : 0, 0, '', '')),
+                ->format(fn ($value) => number_format(is_numeric($value) ? $value : 0, 0, '', ''))
+                ->unclickable(),
 
             Column::make('Father\'s Phone', 'phone_father')
                 ->searchable()
-                ->format(fn ($value) => number_format(is_numeric($value) ? $value : 0, 0, '', '')),
+                ->format(fn ($value) => number_format(is_numeric($value) ? $value : 0, 0, '', ''))
+                ->unclickable(),
 
-            Column::make('Adm. Class', 'admitted_class'),
+            Column::make('Adm. Class', 'admitted_class')
+                ->unclickable(),
 
             Column::make('Adm. Date', 'admission_date')
                 ->format(fn ($value) => Carbon::createFromDate($value)->format('d-m-Y'))
-                ->sortable(),
+                ->sortable()
+                ->unclickable(),
 
             Column::make('Date of Birth', 'dob')
                 ->format(fn ($value) => Carbon::createFromDate($value)->format('d-m-Y'))
-                ->sortable(),
+                ->sortable()
+                ->unclickable(),
 
             Column::make('Name of Father', 'father_name')
-                ->searchable(),
+                ->searchable()
+                ->unclickable(),
 
             Column::make('Occup. of Father', 'father_occupation')
-                ->searchable(),
+                ->searchable()
+                ->unclickable(),
 
             /*
             Column::make('father_residential_address')
@@ -149,16 +170,17 @@ class SearchStudentsTable extends DataTableComponent
                 ->searchable(),,
             */
 
-
-
             Column::make('Name of Mother', 'mother_name')
-                ->searchable(),
+                ->searchable()
+                ->unclickable(),
 
             Column::make('Occup. of Mother', 'mother_occupation')
-                ->searchable(),
+                ->searchable()
+                ->unclickable(),
 
             Column::make('Mother\'s Phone', 'phone_mother')
-                ->searchable(),
+                ->searchable()
+                ->unclickable(),
 
             /*
                 Column::make('mother_residential_address')
@@ -167,10 +189,12 @@ class SearchStudentsTable extends DataTableComponent
             */
 
             Column::make('Name of Guardian', 'guardian_name')
-                ->searchable(),
+                ->searchable()
+                ->unclickable(),
 
             Column::make('Guardian\'s Phone', 'phone_guardian')
-                ->searchable(),
+                ->searchable()
+                ->unclickable(),
 
             /*
             Column::make('b.guardian_address')
@@ -202,16 +226,6 @@ class SearchStudentsTable extends DataTableComponent
         return Excel::download(new StudentsExport($ids, $sorts), 'students.xlsx');
     }
 
-
-    /*
-[
-  "class" => array:1 [▶
-    0 => "12"
-  ]
-  "status" => "Active"
-]
-*/
-
     public function filters(): array
     {
         $genders = $this->model::query()
@@ -225,34 +239,29 @@ class SearchStudentsTable extends DataTableComponent
 
         $all_genders = Arr::prepend($genders, 'All', '');
 
-        if (Arr::has($this->getAppliedFilters(), 'class')) {
-            ['class' => $class] = $this->getAppliedFilters();
+        $class = $status = null;
+        try {
+            ['class' => $class, 'status' => $status] = $this->getAppliedFilters();
             if (is_string($class))
                 $class = [$class];
-        }
+        } catch (\Throwable $th) {}
 
-        if (empty($class)) {
-            $batches = $this->model::query()
-                ->distinct()
-                ->select('full_batch')
-                ->orderBy('class_id')
-                ->orderBy('full_batch', 'desc')
-                ->get()
-                ->keyBy('full_batch')
-                ->map(fn ($batch) => $batch->full_batch)
-                ->toArray();
-        } else {
-            $batches = $this->model::query()
-                ->distinct()
-                ->select('full_batch')
-                ->whereIn('class_id', $class)
-                ->orderBy('class_id')
-                ->orderBy('full_batch', 'desc')
-                ->get()
-                ->keyBy('full_batch')
-                ->map(fn ($batch) => $batch->full_batch)
-                ->toArray();
-        }
+        $batches = $this->model::query()
+            ->distinct()
+            ->select('full_batch')
+            ->when($class, function ($query, $class) {
+                return $query->whereIn('class_id', $class);
+            })
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
+            })
+            ->orderBy('class_id')
+            ->orderBy('full_batch', 'desc')
+            ->get()
+            ->keyBy('full_batch')
+            ->map(fn ($batch) => $batch->full_batch)
+            ->toArray();
+
         $all_batches = Arr::prepend($batches, 'All', '');
 
         $status = $this->model::query()

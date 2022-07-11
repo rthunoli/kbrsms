@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class ChangePasswordController extends Controller
 {
@@ -28,7 +29,9 @@ class ChangePasswordController extends Controller
      */
     public function changePassword(Request $request)
     {   
-        /** @var $user */    
+        /**
+         * @var User
+         */
         $user = Auth::user();
     
         $userPassword = $user->password;
