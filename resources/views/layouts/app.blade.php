@@ -31,7 +31,7 @@
     {{-- <script src="{{ asset('js/splitter.js') }}"></script> --}}
 </head>
 
-<body class="font-sans antialiased">
+<body class="font-sans antialiased" x-data="{isOpen:true}">
     {{-- "bg-gray-100" --}}
     <div id="main-layout" class="min-h-screen bg-[url('/img/beams.jpg')]">
         <!-- Header -->
@@ -47,7 +47,7 @@
             </header> --}}
 
         <!-- Side bar -->
-        <aside class="border-r-2 border-gray-200">
+        <aside id="sidebar" x-show="isOpen" x-transition>
             <button id="selectdb" data-dropdown-toggle="dropdown"
                 class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 type="button">
@@ -90,6 +90,9 @@
 
         <!-- Page Content -->
         <main class="overflow-x-auto">
+            <div class="flex justify-start text-lg text-gray-600">
+                <button @click.prevent="isOpen = !isOpen" title="Show / Hide Sidebar">x</button>
+            </div>
             @if (session('error'))
                 <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800 text-center"
                     role="alert">
